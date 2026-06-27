@@ -8,27 +8,35 @@ const scanRoutes = require('./routes/scan');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/scan', scanRoutes);
 
-// Test route
 app.get('/', (req, res) => {
   res.json({ message: 'AccessiCheck Backend Running! 🚀' });
 });
 
-// MongoDB Connect
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ MongoDB Connected!');
-    app.listen(process.env.PORT, () => {
-      console.log(`✅ Server running on port ${process.env.PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.log('❌ MongoDB Error:', err);
+// Vercel ke liye mongoose connect
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGODB_URI);
+  isConnected = true;
+};
+
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
+// Local development ke liye
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(process.env.PORT || 5000, () => {
+    console.log('✅ Server running on port', process.env.PORT || 5000);
   });
+}
+
+module.exports = app;
