@@ -8,7 +8,12 @@ const scanRoutes = require('./routes/scan');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
@@ -18,7 +23,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'AccessiCheck Backend Running! 🚀' });
 });
 
-// Vercel ke liye mongoose connect
 let isConnected = false;
 
 const connectDB = async () => {
@@ -32,7 +36,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Local development ke liye
 if (process.env.NODE_ENV !== 'production') {
   app.listen(process.env.PORT || 5000, () => {
     console.log('✅ Server running on port', process.env.PORT || 5000);
